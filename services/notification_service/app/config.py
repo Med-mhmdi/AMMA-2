@@ -1,0 +1,17 @@
+import os
+
+
+class Settings:
+    APP_NAME: str = "AMMA Notification Service"
+    APP_ENV: str = os.getenv("APP_ENV", "development")
+
+    DATABASE_URL: str = os.getenv(
+        "NOTIFICATION_DATABASE_URL",
+        "postgresql+psycopg2://postgres:postgres@notification_db:5432/notification_db",
+    )
+
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "change_me_super_secret_key")
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+
+
+settings = Settings()

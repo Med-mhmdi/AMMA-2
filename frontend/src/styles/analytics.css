@@ -1,0 +1,538 @@
+.analytics-page {
+  height: 100dvh;
+  background: #050505;
+  color: white;
+  padding: 22px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.analytics-loading {
+  color: white;
+  font-size: 1.2rem;
+}
+
+.analytics-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.analytics-tabs,
+.period-switch,
+.analytics-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.period-switch.vertical {
+  flex-direction: column;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.analytics-tabs button,
+.period-switch button {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  background: #1b1b1b;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.analytics-tabs button.active,
+.period-switch button.active {
+  background: #3fa9f5;
+}
+
+.analytics-filters input,
+.analytics-filters select {
+  width: 160px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: #1b1b1b;
+  color: white;
+  box-sizing: border-box;
+}
+
+.analytics-content {
+  width: 100%;
+  max-width: 100%;
+  height: calc(100dvh - 170px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.analytics-overview-layout {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.analytics-summary.compact {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.analytics-card,
+.budget-card,
+.budget-update-card,
+.analytics-chart {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 18px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.budget-update-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.analytics-card {
+  text-align: center;
+}
+
+.analytics-card h3 {
+  margin: 0 0 8px 0;
+  color: #b8b8b8;
+  font-size: 0.95rem;
+}
+
+.analytics-card p {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.positive-value {
+  color: #28c76f;
+}
+
+.negative-value {
+  color: #ff5757;
+}
+
+.budget-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  margin-bottom: 16px;
+  align-items: stretch;
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.budget-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.budget-header p {
+  margin: 0;
+  color: #cfcfcf;
+}
+
+.budget-warning-banner {
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  text-align: center;
+  width: fit-content;
+}
+
+.budget-warning-banner.warning {
+  background: #ffb020;
+  color: #111;
+}
+
+.budget-warning-banner.full {
+  background: #ff7a18;
+  color: white;
+}
+
+.budget-warning-banner.over {
+  background: #ff5757;
+  color: white;
+}
+
+.budget-bar {
+  width: 100%;
+  height: 13px;
+  background: #1f1f1f;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.budget-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.budget-fill.safe {
+  background: #28c76f;
+}
+
+.budget-fill.fast {
+  background: #3fa9f5;
+}
+
+.budget-fill.warning,
+.budget-fill.full,
+.budget-fill.over,
+.budget-fill.danger {
+  background: #ff5757;
+}
+
+.budget-left-text {
+  margin-top: 12px;
+  color: #cfcfcf;
+  font-size: 1rem;
+}
+
+.budget-left-text strong {
+  color: white;
+}
+
+.budget-update-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.budget-update-card label {
+  color: #b8b8b8;
+}
+
+.budget-update-card input {
+  padding: 11px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: #1b1b1b;
+  color: white;
+}
+
+.budget-update-card button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px;
+  background: #3fa9f5;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.analytics-chart {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.analytics-chart h2 {
+  margin: 0 0 18px 0;
+  text-align: center;
+  font-size: 1.45rem;
+}
+
+.chart-body {
+  width: 100%;
+  height: calc(100% - 40px);
+  min-height: 0;
+}
+
+.chart-expand-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 12px;
+  background: #3fa9f5;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.overview-chart {
+  height: 360px;
+  margin-bottom: 0;
+}
+
+.daily-chart {
+  height: calc(100dvh - 190px);
+  min-height: 500px;
+}
+
+.chart-expanded {
+  position: fixed;
+  inset: 16px;
+  z-index: 9999;
+  width: auto !important;
+  height: auto !important;
+  background: #111;
+  overflow: hidden;
+}
+
+.analytics-grid.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+.category-options {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.analytics-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.analytics-table th,
+.analytics-table td {
+  padding: 15px;
+  border-bottom: 1px solid #333;
+  text-align: center;
+  word-break: break-word;
+}
+
+.analytics-table th {
+  color: #b8b8b8;
+}
+
+.empty-message {
+  text-align: center;
+  color: #b8b8b8;
+  margin-top: 80px;
+}
+
+.analytics-loan-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loan-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.loan-summary-result {
+  min-height: 280px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.loan-summary-result p {
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 0 0 18px 0;
+}
+
+.loan-summary-result h3 {
+  font-size: 2rem;
+  margin: 0 0 12px 0;
+}
+
+.loan-summary-result span {
+  color: #b8b8b8;
+  font-size: 1rem;
+}
+
+.top-categories-chart {
+  overflow-x: hidden;
+}
+
+/* =========================
+   TABLET / PHONE
+========================= */
+
+@media (max-width: 900px) {
+  .analytics-page {
+    padding: 10px;
+    overflow: hidden;
+  }
+
+  .analytics-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .analytics-tabs {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    gap: 12px;
+    padding-bottom: 8px;
+  }
+
+  .analytics-tabs button {
+    flex: 0 0 145px;
+  }
+
+  .analytics-filters {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .analytics-filters input,
+  .analytics-filters select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .analytics-content {
+    height: calc(100dvh - 210px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .analytics-overview-layout {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .period-switch.vertical {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .period-switch.vertical button {
+    flex: 1;
+  }
+
+  .analytics-summary.compact {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .budget-row,
+  .analytics-grid.two,
+  .loan-summary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .category-options {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .category-options .period-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .category-options .period-switch button {
+    width: 100%;
+  }
+
+  .analytics-chart {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .overview-chart {
+    height: 420px;
+  }
+
+  .daily-chart {
+    height: 520px;
+    min-height: 520px;
+  }
+
+  .budget-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 700px) {
+  .chart-expanded {
+    position: fixed;
+    inset: 0;
+    width: 100dvw !important;
+    height: 100dvh !important;
+    border-radius: 0;
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  .chart-expanded .chart-body {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    width: 100dvh;
+    height: calc(100dvw - 70px);
+
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center;
+  }
+
+  .chart-expanded h2 {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    z-index: 10;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .chart-expanded .chart-expand-btn {
+    top: 12px;
+    right: 12px;
+    z-index: 20;
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-tabs button {
+    flex: 0 0 132px;
+  }
+
+  .analytics-chart h2 {
+    font-size: 1.25rem;
+  }
+
+  .analytics-table th,
+  .analytics-table td {
+    padding: 12px 6px;
+  }
+
+  .loan-summary-result p {
+    font-size: 3rem;
+  }
+}

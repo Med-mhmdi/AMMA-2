@@ -1,0 +1,1 @@
+# Placeholder for future Kafka consumer implementation.

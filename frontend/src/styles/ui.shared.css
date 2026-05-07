@@ -1,0 +1,188 @@
+/* =========================
+   SHARED BUTTON SYSTEM
+========================= */
+
+.btn {
+  border: none;
+  padding: 12px 16px;
+  font-size: 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-sizing: border-box;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: #3fa9f5;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2d8cd6;
+}
+
+.btn-edit {
+  background: #404040;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #b0b0b0;
+}
+
+.btn-delete {
+  background: #470101;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #e24848;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-half {
+  flex: 1;
+  width: 50%;
+}
+
+.btn-action {
+  min-width: 88px;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-label {
+  display: inline;
+}
+
+/* Mobile: action buttons become icon-only */
+@media (max-width: 700px) {
+  .btn-action {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    padding: 0;
+  }
+
+  .btn-action .btn-label {
+    display: none;
+  }
+
+  .btn-action .btn-icon {
+    margin-right: 0;
+    font-size: 22px;
+  }
+}
+
+/* =========================
+   SHARED PANEL / CONTAINER SYSTEM
+========================= */
+
+/* For forms: create / add / edit */
+.form-panel {
+  height: 100%;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 18px;
+  padding: 22px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* For lists/tables */
+.list-panel {
+  height: 100%;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 18px;
+  padding: 20px 22px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+/* Inner scroll area for tables */
+.table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+}
+
+/* Shared sticky table header */
+.sticky-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #111;
+}
+
+/*new mix update*/
+
+.btn-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: #3fa9f5;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 14px;
+
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-header:hover {
+  background: #2d8cd6;
+}
+
+@media (max-width: 700px) {
+  .btn-header {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .btn-header .btn-label {
+    display: none;
+  }
+}
+
+.btn-danger {
+  background: #ff5757;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #e24848;
+}

@@ -1,0 +1,153 @@
+.loans-page {
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 24px 32px;
+  color: white;
+  background: #050505;
+  overflow: hidden;
+}
+
+.loans-header {
+  height: 56px;
+  margin-bottom: 18px;
+}
+
+.loans-header h2 {
+  margin: 0 0 6px 0;
+}
+
+.back-link {
+  color: #b78cff;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.loans-layout {
+  display: flex;
+  gap: 24px;
+  height: calc(100vh - 120px);
+  align-items: stretch;
+}
+
+.loan-side-panel {
+  width: 360px;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.section-title {
+  font-size: 22px;
+  margin: 0 0 18px 0;
+}
+
+.loan-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #e2e2e2;
+}
+
+.loan-form input,
+.loan-form select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  background: #1b1b1b;
+  color: white;
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.loan-form input:focus,
+.loan-form select:focus {
+  border-color: #3fa9f5;
+  box-shadow: 0 0 0 3px rgba(63, 169, 245, 0.18);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.loan-table {
+  min-width: 1050px;
+}
+
+.loan-table thead th {
+  border-bottom: 1px solid #444;
+  padding: 14px 12px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.loan-table td {
+  border-bottom: 1px solid #2f2f2f;
+  padding: 16px 12px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.loan-table tbody tr:hover {
+  background: #171717;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* =========================
+   TABLET / PHONE
+========================= */
+
+@media (max-width: 1200px) {
+  .loans-page {
+    min-height: 100dvh;
+    height: auto;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .loans-layout {
+    flex-direction: column;
+    gap: 24px;
+    height: auto;
+    overflow: visible;
+  }
+
+  .loan-side-panel,
+  .loan-list-panel {
+    width: 100%;
+    height: calc(100dvh - 10px);
+    max-height: 700px;
+    overflow: hidden;
+  }
+
+  .loan-form {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .loan-list-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loan-table {
+    min-width: 1050px;
+  }
+}

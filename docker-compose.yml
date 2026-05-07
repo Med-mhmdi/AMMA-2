@@ -1,0 +1,203 @@
+services:
+  auth_db:
+    image: postgres:16
+    container_name: amma_auth_db
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - amma_net
+
+  expense_db:
+    image: postgres:16
+    container_name: amma_expense_db
+    environment:
+      POSTGRES_DB: ${EXPENSE_DB_NAME}
+      POSTGRES_USER: ${EXPENSE_DB_USER}
+      POSTGRES_PASSWORD: ${EXPENSE_DB_PASSWORD}
+    volumes:
+      - expense_db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - amma_net
+
+  loan_db:
+    image: postgres:16
+    container_name: amma_loan_db
+    environment:
+      POSTGRES_DB: ${LOAN_DB_NAME}
+      POSTGRES_USER: ${LOAN_DB_USER}
+      POSTGRES_PASSWORD: ${LOAN_DB_PASSWORD}
+    volumes:
+      - loan_db_data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+      - amma_net
+
+  notification_db:
+    image: postgres:16
+    container_name: amma_notification_db
+    environment:
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME}
+      POSTGRES_USER: ${NOTIFICATION_DB_USER}
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      - amma_net
+
+  mongodb:
+    image: mongo:7
+    container_name: amma_mongodb
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - amma_net
+
+  redis:
+    image: redis:7
+    container_name: amma_redis
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - amma_net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: amma_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - amma_net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: amma_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - amma_net
+
+  auth_service:
+    build:
+      context: .
+      dockerfile: ./infra/docker/auth_service.Dockerfile
+    container_name: amma_auth_service
+    env_file:
+      - .env
+    depends_on:
+      - auth_db
+    networks:
+      - amma_net
+
+  expense_service:
+    build:
+      context: .
+      dockerfile: ./infra/docker/expense_service.Dockerfile
+    container_name: amma_expense_service
+    env_file:
+      - .env
+    depends_on:
+      - expense_db
+      - kafka
+    networks:
+      - amma_net
+
+  loan_service:
+    build:
+      context: .
+      dockerfile: ./infra/docker/loan_service.Dockerfile
+    container_name: amma_loan_service
+    env_file:
+      - .env
+    depends_on:
+      - loan_db
+      - kafka
+    networks:
+      - amma_net
+
+  analytics_service:
+    build:
+      context: .
+      dockerfile: ./infra/docker/analytics_service.Dockerfile
+    container_name: amma_analytics_service
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - expense_service
+      - loan_service
+    networks:
+      - amma_net
+
+  notification_service:
+    build:
+      context: .
+      dockerfile: ./infra/docker/notification_service.Dockerfile
+    container_name: amma_notification_service
+    env_file:
+      - .env
+    depends_on:
+      - notification_db
+      - kafka
+    networks:
+      - amma_net
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./infra/docker/gateway.Dockerfile
+    container_name: amma_gateway
+    env_file:
+      - .env
+    depends_on:
+      - auth_service
+      - expense_service
+      - loan_service
+      - analytics_service
+      - notification_service
+    ports:
+      - "8000:8000"
+    networks:
+      - amma_net
+
+networks:
+  amma_net:
+    driver: bridge
+
+volumes:
+  auth_db_data:
+  expense_db_data:
+  loan_db_data:
+  notification_db_data:
+  mongodb_data:
+  redis_data:

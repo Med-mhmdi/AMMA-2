@@ -1,0 +1,79 @@
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# SQLite
+*.sqlite3
+
+# ------------------------------
+# PyCharm / IntelliJ
+# ------------------------------
+.idea/
+*.iml
+
+# ------------------------------
+# Node / Frontend
+# ------------------------------
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ------------------------------
+# OS files
+# ------------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------------
+# Docker / local runtime
+# ------------------------------
+*.pid
+tmp/
+temp/
+
+# ------------------------------
+# Uploaded/generated content
+# ------------------------------
+uploads/
+media/
+data/
+
+# ------------------------------
+# Kubernetes secrets / local overrides
+# ------------------------------
+infra/k8s/secrets/*.local.yaml
+
+# ------------------------------
+# Misc
+# ------------------------------
+*.bak
+*.swp
