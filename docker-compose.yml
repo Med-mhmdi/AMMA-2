@@ -68,12 +68,6 @@ services:
   redis:
     image: redis:7
     container_name: amma_redis
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-    volumes:
-      - ./infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-      - redis_data:/data
-    ports:
-      - "6379:6379"
     networks:
       - amma_net
 
