@@ -108,8 +108,12 @@ def memory_update_node(state: AgentState) -> AgentState:
             memory["awaiting_confirmation"] = True
             memory["confirmation_action"] = validation.get("confirmation_action")
         else:
-            memory["awaiting_confirmation"] = False
-            memory["confirmation_action"] = None
+            # Do not clear an existing confirmation just because the user sent
+            # a clarification/correction. It will be cleared only after execution
+            # or cancellation.
+            if not memory.get("awaiting_confirmation"):
+                memory["awaiting_confirmation"] = False
+                memory["confirmation_action"] = None
 
         saved_memory = mongo_memory.save_working_memory(
             user_id=user_id,

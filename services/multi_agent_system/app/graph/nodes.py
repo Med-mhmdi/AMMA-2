@@ -27,6 +27,7 @@ from app.workflow.execution_nodes import (
 from app.workflow.confirmation_nodes import (
     cancel_working_memory_node,
     confirmation_execution_node,
+    confirmation_prepare_node,
 )
 
 from app.workflow.memory_update_node import (
