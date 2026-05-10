@@ -7,6 +7,7 @@ from app.routes.expense_proxy import router as expense_router
 from app.routes.loan_proxy import router as loan_router
 from app.routes.analytics_proxy import router as analytics_router
 from app.routes.notification_proxy import router as notification_router
+from app.routes.multi_agent_proxy import router as agent_router
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,6 +19,7 @@ app.include_router(expense_router)
 app.include_router(loan_router)
 app.include_router(analytics_router)
 app.include_router(notification_router)
+app.include_router(agent_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -77,6 +79,9 @@ def custom_openapi():
 
         "/notifications": {"get", "post"},
         "/notifications/{notification_id}/status": {"patch"},
+
+        "/agent/analyze": {"post"},
+
     }
 
     for path, methods in openapi_schema["paths"].items():

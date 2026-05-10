@@ -166,6 +166,36 @@ services:
     networks:
       - amma_net
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: amma_ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - amma_net
+
+  multi_agent_system:
+    build:
+      context: .
+      dockerfile: ./infra/docker/multi_agent_system.Dockerfile
+    container_name: amma_multi_agent_system
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis
+      - ollama
+      - expense_service
+      - loan_service
+      - analytics_service
+      - notification_service
+    ports:
+      - "8005:8000"
+    networks:
+      - amma_net
+
   gateway:
     build:
       context: .
@@ -179,6 +209,7 @@ services:
       - loan_service
       - analytics_service
       - notification_service
+      - multi_agent_system
     ports:
       - "8000:8000"
     networks:
@@ -195,3 +226,4 @@ volumes:
   notification_db_data:
   mongodb_data:
   redis_data:
+  ollama_data:
