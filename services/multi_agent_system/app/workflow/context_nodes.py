@@ -103,7 +103,7 @@ def tool_context_node(state: AgentState) -> AgentState:
                     }
                 )
 
-            if action in ["update_expense", "delete_expense", "list_expenses"]:
+            if action in ["create_expense", "update_expense", "delete_expense", "list_expenses"]:
                 expenses = expense_tool.list_expenses(auth_header)
 
                 expense_id = data.get("expense_id") or data.get("id")

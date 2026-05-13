@@ -170,6 +170,37 @@ def tool_execution_node(state: AgentState) -> AgentState:
     if action == "create_expense":
         matched_category = tool_context.get("matched_category")
 
+        if not matched_category and extracted_action.get("auto_create_missing_category"):
+            category_name = (
+                extracted_action.get("missing_category_name")
+                or data.get("missing_category_name")
+                or data.get("category")
+                or data.get("category_name")
+            )
+
+            if not category_name:
+                return {
+                    "execution_result": {
+                        "status": "blocked",
+                        "message": "Cannot create missing category because category name is missing.",
+                    },
+                    "trace": append_trace(state, "ToolExecutionNode"),
+                }
+
+            try:
+                matched_category = expense_tool.create_category(
+                    name=category_name,
+                    auth_header=auth_header,
+                )
+            except Exception as exc:
+                return {
+                    "execution_result": {
+                        "status": "failed",
+                        "message": f"Failed to create missing category before expense: {exc}",
+                    },
+                    "trace": append_trace(state, "ToolExecutionNode"),
+                }
+
         if not matched_category:
             return {
                 "execution_result": {

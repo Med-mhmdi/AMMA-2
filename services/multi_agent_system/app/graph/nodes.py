@@ -20,13 +20,19 @@ from app.workflow.validation_nodes import (
     validation_node,
 )
 
+from app.workflow.conflict_nodes import (
+    conflict_check_node,
+    conflict_resolution_handler_node,
+    conflict_resolution_prepare_node,
+)
+
 from app.workflow.execution_nodes import (
     tool_execution_node,
 )
 
 from app.workflow.confirmation_nodes import (
     cancel_working_memory_node,
-    confirmation_execution_node,
+    confirmation_handler_node,
     confirmation_prepare_node,
 )
 

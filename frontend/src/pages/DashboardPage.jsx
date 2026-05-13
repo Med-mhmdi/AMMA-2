@@ -39,8 +39,6 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-shell">
-
-        {/* Top bar */}
         <div className="dashboard-topbar">
           <div>
             <h1 className="dashboard-title">AMMA Dashboard</h1>
@@ -50,67 +48,46 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <button
-            className="btn btn-danger"
-            onClick={handleLogout}
-          >
+          <button className="btn btn-danger" onClick={handleLogout}>
             <span className="btn-icon">🚪</span>
-
-            <span className="btn-label">
-              Logout
-            </span>
+            <span className="btn-label">Logout</span>
           </button>
         </div>
 
-
-        {/* Welcome block */}
         <div className="dashboard-hero">
           <div className="dashboard-hero-card">
-            <h2>Welcome back</h2>
+            <div className="dashboard-hero-row">
+              <div>
+                <h2>Welcome back</h2>
 
-            <p>
-              Manage your expenses, loans, and financial activity from one
-              place with a cleaner and more organized workflow.
-            </p>
+                <p>
+                  Manage your expenses, loans, and financial activity from one
+                  place with a cleaner and more organized workflow.
+                </p>
+              </div>
+
+              <Link to="/assistant" className="btn btn-primary dashboard-ai-btn">
+                <span className="btn-icon">🤖</span>
+                <span className="btn-label">Open AI Assistant</span>
+              </Link>
+            </div>
           </div>
         </div>
 
-
-        {/* Feature cards */}
         <div className="dashboard-grid">
-
           {features.map((item) => (
-
-            <div
-              key={item.title}
-              className="dashboard-feature-card"
-            >
-
+            <div key={item.title} className="dashboard-feature-card">
               <h3>{item.title}</h3>
 
               <p>{item.description}</p>
 
-              <Link
-                to={item.path}
-                className="btn btn-primary"
-              >
-
-                <span className="btn-icon">
-                  {item.icon}
-                </span>
-
-                <span className="btn-label">
-                  {item.action}
-                </span>
-
+              <Link to={item.path} className="btn btn-primary">
+                <span className="btn-icon">{item.icon}</span>
+                <span className="btn-label">{item.action}</span>
               </Link>
-
             </div>
-
           ))}
-
         </div>
-
       </div>
     </div>
   );

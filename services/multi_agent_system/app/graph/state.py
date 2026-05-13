@@ -15,7 +15,8 @@ AgentIntent = Literal[
 
 NextNode = Literal[
     "command_agent",
-    "confirmation_execution",
+    "confirmation_handler",
+    "conflict_resolution_handler",
     "cancel_working_memory",
     "financial_advisor",
     "recommendation_agent",
@@ -65,7 +66,16 @@ class AgentState(TypedDict, total=False):
     # =========================
     tool_context: dict[str, Any] | None
     validation: dict[str, Any] | None
+    conflict_check: dict[str, Any] | None
+    conflict_resolution: dict[str, Any] | None
     execution_result: dict[str, Any] | None
+
+    # =========================
+    # Control flags
+    # =========================
+    confirmation_approved: bool | None
+    skip_confirmation: bool | None
+    skip_conflict_check: bool | None
 
     # =========================
     # Final response / debug

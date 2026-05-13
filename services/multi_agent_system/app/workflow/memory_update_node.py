@@ -12,6 +12,10 @@ def _base_memory(state: AgentState) -> dict[str, Any]:
         "current_action": None,
         "awaiting_confirmation": False,
         "confirmation_action": None,
+        "awaiting_conflict_resolution": False,
+        "conflict_action": None,
+        "conflict_options": None,
+        "conflict_existing_record": None,
         "last_validation": None,
         "last_question": None,
         "last_result": None,
@@ -39,6 +43,8 @@ def _get_assistant_message(state: AgentState) -> str | None:
     validation = state.get("validation") or {}
     execution = state.get("execution_result") or {}
     clarification = state.get("clarification_result") or {}
+    conflict_resolution = state.get("conflict_resolution") or {}
+    conflict_check = state.get("conflict_check") or {}
 
     if execution.get("message"):
         return execution.get("message")
@@ -46,10 +52,28 @@ def _get_assistant_message(state: AgentState) -> str | None:
     if validation.get("question"):
         return validation.get("question")
 
+    if conflict_resolution.get("question"):
+        return conflict_resolution.get("question")
+
+    if conflict_check.get("question"):
+        return conflict_check.get("question")
+
     if clarification.get("message"):
         return clarification.get("message")
 
     return None
+
+
+def _get_last_question(state: AgentState) -> str | None:
+    validation = state.get("validation") or {}
+    clarification = state.get("clarification_result") or {}
+    conflict_resolution = state.get("conflict_resolution") or {}
+
+    return (
+        validation.get("question")
+        or conflict_resolution.get("question")
+        or clarification.get("message")
+    )
 
 
 def memory_update_node(state: AgentState) -> AgentState:
@@ -60,6 +84,7 @@ def memory_update_node(state: AgentState) -> AgentState:
     - request is unclear
     - validation needs clarification
     - validation asks for confirmation
+    - conflict_check asks for duplicate/conflict resolution
 
     Clear working memory when:
     - execution succeeds
@@ -74,6 +99,7 @@ def memory_update_node(state: AgentState) -> AgentState:
     execution = state.get("execution_result") or {}
     extracted_action = state.get("extracted_action")
     clarification = state.get("clarification_result")
+    conflict_resolution = state.get("conflict_resolution") or {}
 
     try:
         if execution.get("status") in ["executed", "cancelled"]:
@@ -98,7 +124,7 @@ def memory_update_node(state: AgentState) -> AgentState:
 
         memory["current_intent"] = state.get("intent")
         memory["last_validation"] = validation
-        memory["last_question"] = validation.get("question") or clarification.get("message") if clarification else validation.get("question")
+        memory["last_question"] = _get_last_question(state)
         memory["last_result"] = execution if execution else None
 
         if extracted_action:
@@ -114,6 +140,38 @@ def memory_update_node(state: AgentState) -> AgentState:
             if not memory.get("awaiting_confirmation"):
                 memory["awaiting_confirmation"] = False
                 memory["confirmation_action"] = None
+
+        if validation.get("awaiting_conflict_resolution") or conflict_resolution.get("awaiting_conflict_resolution"):
+            conflict_action = (
+                validation.get("conflict_action")
+                or conflict_resolution.get("conflict_action")
+                or memory.get("conflict_action")
+            )
+            conflict_options = (
+                validation.get("conflict_options")
+                or conflict_resolution.get("options")
+                or memory.get("conflict_options")
+            )
+            existing_record = (
+                validation.get("existing_record")
+                or (conflict_action or {}).get("existing_record")
+                or memory.get("conflict_existing_record")
+            )
+
+            memory["awaiting_conflict_resolution"] = True
+            memory["conflict_action"] = conflict_action
+            memory["conflict_options"] = conflict_options
+            memory["conflict_existing_record"] = existing_record
+
+            # Once we are in conflict resolution, the original confirmation is done.
+            memory["awaiting_confirmation"] = False
+            memory["confirmation_action"] = None
+        else:
+            if not memory.get("awaiting_conflict_resolution"):
+                memory["awaiting_conflict_resolution"] = False
+                memory["conflict_action"] = None
+                memory["conflict_options"] = None
+                memory["conflict_existing_record"] = None
 
         saved_memory = mongo_memory.save_working_memory(
             user_id=user_id,

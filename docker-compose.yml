@@ -183,6 +183,8 @@ services:
     container_name: amma_multi_agent_system
     env_file:
       - .env
+    environment:
+      TZ: Europe/Moscow
     depends_on:
       - mongodb
       - redis
@@ -203,6 +205,8 @@ services:
     container_name: amma_gateway
     env_file:
       - .env
+    environment:
+      TZ: Europe/Moscow
     depends_on:
       - auth_service
       - expense_service

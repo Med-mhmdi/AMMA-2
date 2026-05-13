@@ -17,6 +17,31 @@ def final_response_node(state: AgentState) -> AgentState:
             "trace": state.get("trace", []),
         }
 
+    elif validation.get("awaiting_conflict_resolution"):
+        response = {
+            "type": "conflict_resolution",
+            "message": validation.get("question"),
+            "intent": intent,
+            "pending_memory": state.get("memory_event"),
+            "conflict_action": validation.get("conflict_action"),
+            "existing_record": validation.get("existing_record"),
+            "options": validation.get(
+                "conflict_options",
+                ["add_anyway", "update_existing", "cancel"],
+            ),
+            "trace": state.get("trace", []),
+        }
+
+    elif validation.get("awaiting_confirmation"):
+        response = {
+            "type": "confirmation",
+            "message": validation.get("question"),
+            "intent": intent,
+            "pending_memory": state.get("memory_event"),
+            "confirmation_action": validation.get("confirmation_action"),
+            "trace": state.get("trace", []),
+        }
+
     elif validation.get("needs_user_clarification"):
         response = {
             "type": "clarification",

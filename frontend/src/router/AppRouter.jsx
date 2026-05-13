@@ -6,6 +6,7 @@ import DashboardPage from "../pages/DashboardPage";
 import ExpensesPage from "../pages/ExpensesPage";
 import LoansPage from "../pages/LoansPage";
 import AnalyticsPage from "../pages/AnalyticsPage";
+import AiAssistantPage from "../pages/AiAssistantPage";
 
 export default function AppRouter() {
   return (
@@ -16,6 +17,7 @@ export default function AppRouter() {
       <Route path="/expenses" element={<ExpensesPage />} />
       <Route path="/loans" element={<LoansPage />} />
       <Route path="/analytics" element={<AnalyticsPage />} />
+      <Route path="/assistant" element={<AiAssistantPage />} />
     </Routes>
   );
 }

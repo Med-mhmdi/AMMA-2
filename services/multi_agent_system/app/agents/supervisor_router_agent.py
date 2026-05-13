@@ -9,11 +9,13 @@ def _fallback_route(
     working_memory: dict[str, Any] | None,
 ) -> dict[str, Any]:
     """
-    Minimal safe fallback only if the LLM fails.
+    Minimal safe fallback if the LLM router fails.
 
-    The main routing intelligence is the LLM.
-    This fallback avoids crashes and keeps the graph moving.
+    Critical pending-memory routing is handled in app/workflow/agent_nodes.py.
+    This fallback only handles normal non-pending routing.
     """
+
+    text = (message or "").lower().strip()
 
     if has_image:
         return {
@@ -22,18 +24,51 @@ def _fallback_route(
             "reason": "The request contains an image.",
         }
 
-    if working_memory and working_memory.get("awaiting_confirmation"):
+    command_keywords = [
+        "add",
+        "create",
+        "delete",
+        "remove",
+        "update",
+        "change",
+        "rename",
+        "list",
+        "show",
+        "check",
+        "view",
+        "expense",
+        "expenses",
+        "category",
+        "categories",
+        "loan",
+        "loans",
+        "income",
+        "transaction",
+        "transactions",
+    ]
+
+    if any(keyword in text for keyword in command_keywords):
         return {
             "next_node": "command_agent",
             "intent": "command",
-            "reason": "There is a saved action waiting for confirmation or correction.",
+            "reason": "Fallback detected a financial command keyword.",
         }
 
-    if working_memory and working_memory.get("current_action"):
+    advice_keywords = [
+        "analyze",
+        "analysis",
+        "advice",
+        "budget",
+        "spending",
+        "save money",
+        "too much",
+    ]
+
+    if any(keyword in text for keyword in advice_keywords):
         return {
-            "next_node": "command_agent",
-            "intent": "command",
-            "reason": "There is an unfinished command in memory.",
+            "next_node": "financial_advisor",
+            "intent": "financial_advice",
+            "reason": "Fallback detected a financial advice request.",
         }
 
     return {
@@ -51,11 +86,9 @@ def route_next_node(
     """
     SupervisorRouterAgent.
 
-    Uses the LLM to decide the next graph node based on:
-    - current user message
-    - whether an image exists
-    - unified working memory
-    - confirmation state
+    This LLM router is used only when no critical pending memory state
+    is active. Pending confirmation and conflict resolution are handled
+    deterministically in workflow/agent_nodes.py.
     """
 
     fallback = _fallback_route(
@@ -71,8 +104,6 @@ Your job is to choose the next LangGraph node.
 
 Available next_node values:
 - command_agent
-- confirmation_execution
-- cancel_working_memory
 - financial_advisor
 - recommendation_agent
 - notification_agent
@@ -87,7 +118,7 @@ Available intent values:
 - vision_extraction
 - unknown
 
-General routing rules:
+Routing rules:
 
 1. Financial commands or data requests:
 If the user wants to add, update, delete, list, show, check, view, or manage expenses, categories, loans, income, debt, payments, or transactions:
@@ -142,60 +173,7 @@ If the message is unrelated, vague, or unclear:
 next_node = clarification_agent
 intent = unknown
 
-Special rules when working_memory.awaiting_confirmation is true:
-
-The assistant previously showed an action and asked the user to confirm or correct it.
-
-Classify the new user message carefully:
-
-A. Confirmation:
-If the user clearly confirms the saved action:
-Examples:
-- "yes"
-- "ok"
-- "okay"
-- "confirm"
-- "do it"
-- "add it"
-- "create it"
-- "looks good"
-- "correct"
-- "yes add it"
-Then:
-next_node = confirmation_execution
-intent = command
-
-B. Cancellation:
-If the user clearly cancels the saved action without giving corrections:
-Examples:
-- "cancel"
-- "stop"
-- "forget it"
-- "do not add it"
-- "no" when it only means no/cancel
-Then:
-next_node = cancel_working_memory
-intent = command
-
-C. Correction / clarification:
-If the user gives corrected data, replacement values, or extra details:
-Examples:
-- "no, it cost 92 total"
-- "actually category is Food"
-- "use 250 instead"
-- "change the amount to 92"
-- "it is food"
-- "not Transport, it is Food"
-- "description should be university bus round trip"
-- "the amount is 92"
-Then:
-next_node = command_agent
-intent = command
-
 Important:
-- Do NOT treat every message containing "no" as cancellation.
-- If "no" is followed by corrected data, route to command_agent.
-- If there is an unfinished current_action in memory, the current message may complete or correct it, so usually route to command_agent.
 - Return ONLY valid JSON.
 - Do not include markdown.
 - Do not explain outside JSON.
@@ -211,7 +189,7 @@ Working memory:
 
 Return JSON:
 {{
-  "next_node": "command_agent | confirmation_execution | cancel_working_memory | financial_advisor | recommendation_agent | notification_agent | vision_agent | clarification_agent",
+  "next_node": "command_agent | financial_advisor | recommendation_agent | notification_agent | vision_agent | clarification_agent",
   "intent": "command | financial_advice | recommendation | notification | vision_extraction | unknown",
   "reason": "short reason explaining the route"
 }}
@@ -221,8 +199,6 @@ Return JSON:
 
     allowed_next_nodes = {
         "command_agent",
-        "confirmation_execution",
-        "cancel_working_memory",
         "financial_advisor",
         "recommendation_agent",
         "notification_agent",

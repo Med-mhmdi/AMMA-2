@@ -20,6 +20,7 @@ def validation_node(state: AgentState) -> AgentState:
 
     action = extracted_action.get("action")
     data = extracted_action.get("data") or {}
+    confirmed = bool(state.get("confirmation_approved") or extracted_action.get("confirmed"))
 
     if not action or action == "unknown":
         return {
@@ -159,7 +160,11 @@ def validation_node(state: AgentState) -> AgentState:
     if action == "create_expense":
         requested_category = tool_context.get("requested_category")
 
-        if not tool_context.get("category_exists"):
+        if extracted_action.get("auto_create_missing_category"):
+            data["auto_create_missing_category"] = True
+            data["missing_category_name"] = extracted_action.get("missing_category_name") or requested_category
+
+        elif not tool_context.get("category_exists"):
             confirmation_action = {
                 "type": "create_missing_category_then_expense",
                 "category": requested_category,
@@ -245,6 +250,7 @@ def validation_node(state: AgentState) -> AgentState:
         "validation": {
             "is_valid": True,
             "needs_user_clarification": False,
+            "confirmed": confirmed,
             "question": None,
         },
         "trace": append_trace(state, "ValidationNode"),

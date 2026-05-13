@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from app.graph.state import AgentState
-from app.tools.expense_tool import expense_tool
 from app.workflow.common import append_trace
 
 
@@ -200,166 +199,22 @@ def confirmation_prepare_node(state: AgentState) -> AgentState:
 
 
 # ============================================================
-# AFTER confirmation: execution helpers
+# AFTER user says yes: approve saved action, do not execute yet
 # ============================================================
 
-def _execute_create_expense(
-    action: dict[str, Any],
-    auth_header: str | None,
-) -> dict[str, Any]:
-    data = action.get("data") or {}
-    category_name = _get_category_name(data)
-
-    categories = expense_tool.list_categories(auth_header)
-
-    matched_category = expense_tool.find_category_by_name(
-        categories=categories,
-        category_name=category_name,
-    )
-
-    if not matched_category:
-        raise RuntimeError(f'Category "{category_name}" does not exist.')
-
-    payload = {
-        "description": data.get("description"),
-        "type": data.get("type", "outcome"),
-        "amount": data.get("amount"),
-        "transaction_date": data.get("transaction_date"),
-        "category_id": matched_category.get("id"),
-    }
-
-    created_expense = expense_tool.create_expense(
-        payload=payload,
-        auth_header=auth_header,
-    )
-
-    return {
-        "status": "executed",
-        "message": "Transaction added successfully.",
-        "payload": payload,
-        "created_expense": created_expense,
-    }
-
-
-def _execute_create_category(
-    action: dict[str, Any],
-    auth_header: str | None,
-) -> dict[str, Any]:
-    data = action.get("data") or {}
-    category_name = _get_category_name(data)
-
-    if not category_name:
-        raise RuntimeError("Category name is missing.")
-
-    created_category = expense_tool.create_category(
-        name=category_name,
-        auth_header=auth_header,
-    )
-
-    return {
-        "status": "executed",
-        "message": f'Category "{category_name}" created successfully.',
-        "created_category": created_category,
-    }
-
-
-def _execute_delete_category(
-    action: dict[str, Any],
-    auth_header: str | None,
-) -> dict[str, Any]:
-    data = action.get("data") or {}
-    category_name = _get_category_name(data)
-
-    if not category_name:
-        raise RuntimeError("Category name is missing.")
-
-    categories = expense_tool.list_categories(auth_header)
-
-    matched_category = expense_tool.find_category_by_name(
-        categories=categories,
-        category_name=category_name,
-    )
-
-    if not matched_category:
-        raise RuntimeError(f'Category "{category_name}" does not exist.')
-
-    deleted_category = expense_tool.delete_category(
-        category_id=matched_category.get("id"),
-        auth_header=auth_header,
-    )
-
-    return {
-        "status": "executed",
-        "message": f'Category "{category_name}" deleted successfully.',
-        "deleted_category": deleted_category,
-    }
-
-
-def _execute_create_missing_category_then_expense(
-    confirmation_action: dict[str, Any],
-    auth_header: str | None,
-) -> dict[str, Any]:
-    category_name = confirmation_action.get("category")
-    original_action = confirmation_action.get("original_action", {})
-    data = original_action.get("data") or {}
-
-    if not category_name:
-        category_name = _get_category_name(data)
-
-    if not category_name:
-        raise RuntimeError("Category name is missing.")
-
-    categories = expense_tool.list_categories(auth_header)
-
-    matched_category = expense_tool.find_category_by_name(
-        categories=categories,
-        category_name=category_name,
-    )
-
-    if matched_category:
-        created_category = matched_category
-    else:
-        created_category = expense_tool.create_category(
-            name=category_name,
-            auth_header=auth_header,
-        )
-
-    payload = {
-        "description": data.get("description"),
-        "type": data.get("type", "outcome"),
-        "amount": data.get("amount"),
-        "transaction_date": data.get("transaction_date"),
-        "category_id": created_category.get("id"),
-    }
-
-    created_expense = expense_tool.create_expense(
-        payload=payload,
-        auth_header=auth_header,
-    )
-
-    return {
-        "status": "executed",
-        "message": f'Category "{category_name}" created and transaction added successfully.',
-        "created_category": created_category,
-        "payload": payload,
-        "created_expense": created_expense,
-    }
-
-
-# ============================================================
-# AFTER user says yes: execute confirmed action
-# ============================================================
-
-def confirmation_execution_node(state: AgentState) -> AgentState:
+def confirmation_handler_node(state: AgentState) -> AgentState:
     """
-    Runs after user confirms.
+    Runs after the user confirms a saved action.
 
-    Reads confirmation_action from unified working memory and executes it.
+    Important:
+    This node does NOT execute the backend tool.
+    It only loads the saved confirmation_action from working memory and marks it
+    as approved. The graph will then reload tool context, validate again,
+    run conflict_check, and only then execute.
     """
 
     working_memory = state.get("loaded_working_memory") or {}
     confirmation_action = working_memory.get("confirmation_action")
-    auth_header = state.get("auth_header")
 
     if not confirmation_action:
         return {
@@ -367,75 +222,38 @@ def confirmation_execution_node(state: AgentState) -> AgentState:
                 "status": "failed",
                 "message": "There is no saved action to confirm.",
             },
-            "trace": append_trace(state, "ConfirmationExecutionNode"),
+            "trace": append_trace(state, "ConfirmationHandlerNode"),
         }
 
-    try:
-        confirmation_type = confirmation_action.get("type")
-
-        # Special case:
-        # Category does not exist, user confirmed to create category first.
-        if confirmation_type == "create_missing_category_then_expense":
-            original_action = confirmation_action.get("original_action", {})
-
-            execution_result = _execute_create_missing_category_then_expense(
-                confirmation_action=confirmation_action,
-                auth_header=auth_header,
-            )
-
-            return {
-                "intent": "command",
-                "extracted_action": original_action,
-                "execution_result": execution_result,
-                "trace": append_trace(state, "ConfirmationExecutionNode"),
-            }
-
-        # Normal confirmation:
-        # confirmation_action is the prepared extracted_action.
-        action = confirmation_action.get("action")
-
-        if action == "create_expense":
-            execution_result = _execute_create_expense(
-                action=confirmation_action,
-                auth_header=auth_header,
-            )
-
-        elif action == "create_category":
-            execution_result = _execute_create_category(
-                action=confirmation_action,
-                auth_header=auth_header,
-            )
-
-        elif action == "delete_category":
-            execution_result = _execute_delete_category(
-                action=confirmation_action,
-                auth_header=auth_header,
-            )
-
-        else:
-            execution_result = {
-                "status": "failed",
-                "message": f"Confirmed action is not executable yet: {action}",
-                "confirmation_action": confirmation_action,
-            }
-
-        return {
-            "intent": "command",
-            "extracted_action": confirmation_action,
-            "execution_result": execution_result,
-            "trace": append_trace(state, "ConfirmationExecutionNode"),
+    # Special case saved by validation_node:
+    # category missing, user approved creating it before adding the expense.
+    if confirmation_action.get("type") == "create_missing_category_then_expense":
+        original_action = confirmation_action.get("original_action") or {}
+        prepared_action = {
+            **original_action,
+            "confirmed": True,
+            "auto_create_missing_category": True,
+            "missing_category_name": confirmation_action.get("category"),
+        }
+    else:
+        prepared_action = {
+            **confirmation_action,
+            "confirmed": True,
         }
 
-    except Exception as exc:
-        return {
-            "execution_result": {
-                "status": "failed",
-                "message": f"Failed to execute confirmed action: {exc}",
-                "confirmation_action": confirmation_action,
-            },
-            "errors": [*state.get("errors", []), f"Confirmation failed: {exc}"],
-            "trace": append_trace(state, "ConfirmationExecutionNode"),
-        }
+    return {
+        "intent": "command",
+        "extracted_action": prepared_action,
+        "confirmation_approved": True,
+        "validation": {
+            "is_valid": True,
+            "needs_user_clarification": False,
+            "awaiting_confirmation": False,
+            "confirmed": True,
+            "question": None,
+        },
+        "trace": append_trace(state, "ConfirmationHandlerNode"),
+    }
 
 
 # ============================================================
