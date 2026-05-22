@@ -420,6 +420,5 @@ class SummaryService:
         return result
 
     def invalidate_user_cache(self, user_id: int):
-        # Simple safe version: leave Redis keys to expire naturally.
-        # Manual refresh still reloads frontend state after backend cache TTL.
-        return True
+        deleted = self.cache_service.invalidate_user_cache(user_id)
+        return {"deleted_keys": deleted}

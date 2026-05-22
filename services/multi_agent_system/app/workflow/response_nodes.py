@@ -6,6 +6,7 @@ def final_response_node(state: AgentState) -> AgentState:
     validation = state.get("validation") or {}
     execution_result = state.get("execution_result")
     clarification_result = state.get("clarification_result")
+    vision_result = state.get("vision_result") or {}
     intent = state.get("intent")
 
     if execution_result:
@@ -39,6 +40,26 @@ def final_response_node(state: AgentState) -> AgentState:
             "intent": intent,
             "pending_memory": state.get("memory_event"),
             "confirmation_action": validation.get("confirmation_action"),
+            "action": state.get("extracted_action"),
+            "vision_result": vision_result if vision_result else None,
+            "trace": state.get("trace", []),
+        }
+
+    # Important:
+    # If Vision Agent extracted partial data, use its friendly question instead
+    # of the generic validation question.
+    elif (
+        vision_result.get("needs_user_clarification")
+        and vision_result.get("question")
+    ):
+        response = {
+            "type": "clarification",
+            "message": vision_result.get("question"),
+            "intent": intent,
+            "action": state.get("extracted_action"),
+            "vision_result": vision_result,
+            "pending_memory": state.get("memory_event"),
+            "matches": validation.get("matches"),
             "trace": state.get("trace", []),
         }
 
@@ -47,6 +68,7 @@ def final_response_node(state: AgentState) -> AgentState:
             "type": "clarification",
             "message": validation.get("question"),
             "intent": intent,
+            "action": state.get("extracted_action"),
             "pending_memory": state.get("memory_event"),
             "matches": validation.get("matches"),
             "trace": state.get("trace", []),
@@ -78,7 +100,10 @@ def final_response_node(state: AgentState) -> AgentState:
     elif intent == "recommendation":
         response = {
             "type": "recommendation",
-            "recommendations": state.get("recommendation_result", {}).get("recommendations", []),
+            "recommendations": state.get("recommendation_result", {}).get(
+                "recommendations",
+                [],
+            ),
             "recommendation_result": state.get("recommendation_result"),
             "notification": state.get("notification_decision"),
             "trace": state.get("trace", []),

@@ -4,15 +4,15 @@ from fastapi.openapi.utils import get_openapi
 from app.api.routes import router
 from app.config import settings
 from app.database import Base, engine
-
 from app.models.loan import Loan  # noqa: F401
+from shared.amma_observability import setup_observability
 
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.APP_NAME)
-
 app.include_router(router)
+setup_observability(app, service_name="amma-loan-service")
 
 
 def custom_openapi():

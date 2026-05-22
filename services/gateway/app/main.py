@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routes.auth_proxy import router as auth_router
@@ -8,8 +9,8 @@ from app.routes.loan_proxy import router as loan_router
 from app.routes.analytics_proxy import router as analytics_router
 from app.routes.notification_proxy import router as notification_router
 from app.routes.multi_agent_proxy import router as agent_router
-
-from fastapi.middleware.cors import CORSMiddleware
+from app.routes.storage_proxy import router as storage_router
+from shared.amma_observability import setup_observability
 
 
 app = FastAPI(title=settings.APP_NAME)
@@ -20,10 +21,13 @@ app.include_router(loan_router)
 app.include_router(analytics_router)
 app.include_router(notification_router)
 app.include_router(agent_router)
+app.include_router(storage_router)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost",
+        "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://192.168.1.101:5173",
@@ -33,10 +37,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+setup_observability(app, service_name="amma-gateway")
+
 
 @app.get("/health")
 def gateway_health():
-    return {"status": "ok", "service": "gateway"}
+    return {
+        "status": "ok",
+        "service": "gateway",
+    }
 
 
 def custom_openapi():
@@ -50,45 +59,34 @@ def custom_openapi():
         routes=app.routes,
     )
 
-    openapi_schema["components"]["securitySchemes"] = {
-        "BearerAuth": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT",
-        }
-    }
-
     protected_paths = {
         "/expenses": {"get", "post"},
         "/expenses/{expense_id}": {"put", "delete"},
         "/expenses/summary": {"get"},
-
         "/categories": {"get", "post"},
         "/categories/{category_id}": {"put", "delete"},
-
         "/budgets": {"get", "put"},
-
         "/loans": {"get", "post"},
         "/loans/{loan_id}": {"put", "delete"},
-
         "/analytics/dashboard": {"get"},
         "/analytics/categories": {"get"},
         "/analytics/daily": {"get"},
         "/analytics/forecast": {"get"},
         "/analytics/cache/invalidate": {"post"},
-
         "/notifications": {"get", "post"},
         "/notifications/{notification_id}/status": {"patch"},
-
         "/agent/analyze": {"post"},
-
+        "/agent/analyze/upload": {"post"},
+        "/storage/receipts/upload": {"post"},
+        "/storage/reports/demo": {"post"},
+        "/storage/analytics/snapshot/demo": {"post"},
     }
 
-    for path, methods in openapi_schema["paths"].items():
+    for path, methods in openapi_schema.get("paths", {}).items():
         if path in protected_paths:
             for method, operation in methods.items():
                 if method in protected_paths[path]:
-                    operation["security"] = [{"BearerAuth": []}]
+                    operation["security"] = [{"HTTPBearer": []}]
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema

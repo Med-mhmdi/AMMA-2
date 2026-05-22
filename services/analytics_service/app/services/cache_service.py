@@ -22,7 +22,15 @@ class CacheService:
         return json.loads(value)
 
     def set(self, key: str, value, ttl_seconds: int = 120):
-        self.client.set(key, json.dumps(value), ex=ttl_seconds)
+        self.client.set(key, json.dumps(value, default=str), ex=ttl_seconds)
 
     def delete(self, key: str):
         self.client.delete(key)
+
+    def invalidate_user_cache(self, user_id: int) -> int:
+        """Delete all analytics cache keys for one user."""
+        pattern = f"analytics:{user_id}:*"
+        deleted = 0
+        for key in self.client.scan_iter(pattern):
+            deleted += self.client.delete(key)
+        return deleted

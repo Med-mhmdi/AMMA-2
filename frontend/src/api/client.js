@@ -1,6 +1,8 @@
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
+const REQUEST_TIMEOUT_MS = 180000; // 3 minutes for local Ollama/AI calls
+
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
 
@@ -12,40 +14,58 @@ function getAuthHeaders() {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  if (!response.ok) {
-    let errorMessage = "Request failed";
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+        ...(options.headers || {}),
+      },
+      signal: controller.signal,
+      ...options,
+    });
 
-    try {
-      const errorData = await response.json();
+    if (!response.ok) {
+      let errorMessage = "Request failed";
 
-      if (Array.isArray(errorData.detail)) {
-        errorMessage = errorData.detail
-          .map((item) => item.msg)
-          .join(" | ");
-      } else {
-        errorMessage =
-          errorData.detail ||
-          errorData.message ||
-          errorMessage;
+      try {
+        const errorData = await response.json();
+
+        if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail
+            .map((item) => item.msg)
+            .join(" | ");
+        } else {
+          errorMessage =
+            errorData.final_response?.message ||
+            errorData.result?.message ||
+            errorData.detail ||
+            errorData.message ||
+            errorMessage;
+        }
+      } catch {
+        // fallback if response is not JSON
       }
-    } catch {
-      // fallback if response is not JSON
+
+      throw new Error(errorMessage);
     }
 
-    throw new Error(errorMessage);
-  }
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error(
+        "The AI request took too long. Local Ollama may still be processing."
+      );
+    }
 
-  const text = await response.text();
-  return text ? JSON.parse(text) : null;
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 const client = {

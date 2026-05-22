@@ -249,7 +249,9 @@ def build_amma_agent_graph():
     # =========================
     # Vision flow
     # =========================
-    graph.add_edge("vision_agent", "validation")
+    # Vision Agent produces the same extracted_action format as Command Agent.
+    # Therefore, it must pass through Tool Context before validation.
+    graph.add_edge("vision_agent", "tool_context")
 
     # =========================
     # Advice / recommendation / notification flow

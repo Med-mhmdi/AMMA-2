@@ -129,10 +129,14 @@ def vision_extraction_agent_node(state: AgentState) -> AgentState:
     result = extract_from_image(
         image_base64=state.get("image_base64"),
         image_url=state.get("image_url"),
+        message=state.get("message"),
     )
+
+    extracted_action = result.get("extracted_action")
 
     return {
         "vision_result": result,
+        "extracted_action": extracted_action,
         "trace": append_trace(state, "VisionAgent"),
     }
 

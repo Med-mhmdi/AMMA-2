@@ -1,0 +1,41 @@
+flowchart TB
+    subgraph LocalDocker["Local Docker Compose / Future Kubernetes Namespace: amma"]
+        Nginx["Nginx :80"]
+        Frontend["React Frontend :3000"]
+        Gateway["Gateway :8000"]
+        Auth["Auth Service"]
+        Expense["Expense Service"]
+        Loan["Loan Service"]
+        Analytics["Analytics Service"]
+        Agent["Multi-Agent Service :8005"]
+        Notification["Notification Service"]
+        Kafka["Kafka :9092 / :29092"]
+        ZK["Zookeeper"]
+        Redis["Redis"]
+        Mongo["MongoDB"]
+        MinIO["MinIO :9000/:9001"]
+        PG1["Auth PostgreSQL"]
+        PG2["Expense PostgreSQL"]
+        PG3["Loan PostgreSQL"]
+        PG4["Notification PostgreSQL"]
+        Obs["Prometheus :9090\nGrafana :3001\nLoki :3100\nJaeger :16686"]
+        Ollama["Ollama :11434"]
+    end
+
+    User["User Browser"] --> Nginx
+    Nginx --> Frontend
+    Nginx --> Gateway
+    Gateway --> Auth --> PG1
+    Gateway --> Expense --> PG2
+    Gateway --> Loan --> PG3
+    Gateway --> Analytics --> Redis
+    Gateway --> Agent --> Mongo
+    Agent --> Ollama
+    Gateway --> Notification --> PG4
+    Expense --> Kafka
+    Loan --> Kafka
+    Kafka --> Analytics
+    Kafka --> Notification
+    Kafka --> ZK
+    Analytics -. archive .-> MinIO
+    LocalDocker -. observed by .-> Obs

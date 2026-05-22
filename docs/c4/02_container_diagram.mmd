@@ -1,0 +1,48 @@
+flowchart TB
+    User["User"]
+    Browser["React Frontend\nVite"]
+    Nginx["Nginx\nRouter + Reverse Proxy + Rate Limiter"]
+    Gateway["FastAPI Gateway"]
+
+    Auth["Auth Service"]
+    Expense["Expense Service"]
+    Loan["Loan Service"]
+    Analytics["Analytics Service"]
+    Agent["Multi-Agent Service"]
+    Notification["Notification Service"]
+
+    AuthDB[("PostgreSQL\nAuth DB")]
+    ExpenseDB[("PostgreSQL\nExpense DB")]
+    LoanDB[("PostgreSQL\nLoan DB")]
+    NotificationDB[("PostgreSQL\nNotification DB")]
+    Mongo[("MongoDB\nAgent Memory")]
+    Redis[("Redis\nAnalytics Cache")]
+    Kafka[("Kafka\nEvent Bus")]
+    MinIO[("MinIO\nCold Object Storage")]
+    Ollama["Ollama\nLLM Runtime"]
+    Obs["Prometheus + Grafana + Loki + Jaeger"]
+
+    User --> Browser --> Nginx --> Gateway
+    Gateway --> Auth
+    Gateway --> Expense
+    Gateway --> Loan
+    Gateway --> Analytics
+    Gateway --> Agent
+    Gateway --> Notification
+
+    Auth --> AuthDB
+    Expense --> ExpenseDB
+    Loan --> LoanDB
+    Notification --> NotificationDB
+    Agent --> Mongo
+    Agent --> Ollama
+    Analytics --> Redis
+
+    Expense --> Kafka
+    Loan --> Kafka
+    Kafka --> Notification
+    Kafka --> Analytics
+    Analytics -. snapshots .-> MinIO
+
+    Gateway -. telemetry .-> Obs
+    Agent -. traces .-> Obs

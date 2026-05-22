@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: AMMA
+    orgId: 1
+    folder: AMMA
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

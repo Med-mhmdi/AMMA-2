@@ -1,0 +1,29 @@
+flowchart TB
+    Client["Frontend / Nginx"]
+    Gateway["FastAPI Gateway"]
+    AuthMW["Auth Middleware"]
+    LogMW["Logging Middleware"]
+    Proxy["Proxy Service"]
+    AuthRoute["Auth Proxy Routes"]
+    ExpenseRoute["Expense Proxy Routes"]
+    LoanRoute["Loan Proxy Routes"]
+    AnalyticsRoute["Analytics Proxy Routes"]
+    AgentRoute["Agent Proxy Routes"]
+    NotificationRoute["Notification Proxy Routes"]
+
+    Client --> Gateway
+    Gateway --> AuthMW
+    Gateway --> LogMW
+    Gateway --> AuthRoute --> Proxy
+    Gateway --> ExpenseRoute --> Proxy
+    Gateway --> LoanRoute --> Proxy
+    Gateway --> AnalyticsRoute --> Proxy
+    Gateway --> AgentRoute --> Proxy
+    Gateway --> NotificationRoute --> Proxy
+
+    Proxy --> AuthSvc["Auth Service"]
+    Proxy --> ExpenseSvc["Expense Service"]
+    Proxy --> LoanSvc["Loan Service"]
+    Proxy --> AnalyticsSvc["Analytics Service"]
+    Proxy --> AgentSvc["Multi-Agent Service"]
+    Proxy --> NotificationSvc["Notification Service"]

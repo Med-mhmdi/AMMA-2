@@ -7,13 +7,14 @@ from app.database import Base, engine
 from app.models.notification import Notification  # noqa: F401
 from app.consumers.expense_consumer import start_expense_consumer
 from app.consumers.loan_consumer import start_loan_consumer
+from shared.amma_observability import setup_observability
 
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.APP_NAME)
-
 app.include_router(router)
+setup_observability(app, service_name="amma-notification-service")
 
 
 @app.on_event("startup")

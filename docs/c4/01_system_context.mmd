@@ -1,0 +1,11 @@
+flowchart LR
+    User["User / Student"]
+    AMMA["AMMA System\nAI Money Management Assistant"]
+    Ollama["Ollama LLM Runtime"]
+    LangObs["Langfuse / LangSmith\nLLM Observability"]
+    Email["Future Email / Telegram Provider"]
+
+    User -->|Manages expenses, loans, budgets, asks AI| AMMA
+    AMMA -->|LLM prompts / responses| Ollama
+    AMMA -->|Agent traces and evaluations| LangObs
+    AMMA -.->|Future notifications| Email

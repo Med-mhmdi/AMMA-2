@@ -1,0 +1,25 @@
+sequenceDiagram
+    actor User
+    participant FE as React Frontend
+    participant NG as Nginx
+    participant GW as API Gateway
+    participant EX as Expense Service
+    participant DB as Expense PostgreSQL
+    participant K as Kafka
+    participant AN as Analytics Service
+    participant R as Redis
+    participant NO as Notification Service
+    participant NDB as Notification PostgreSQL
+
+    User->>FE: Create expense
+    FE->>NG: POST /api/expenses
+    NG->>GW: Forward request
+    GW->>EX: POST /expenses with JWT
+    EX->>DB: Save expense
+    EX->>K: Publish expense.created
+    K->>AN: Consume expense.created
+    AN->>R: Invalidate analytics:user:* cache
+    K->>NO: Consume expense.created
+    NO->>NDB: Create notification
+    GW-->>FE: Expense response
+    FE->>GW: Refresh dashboard / notifications

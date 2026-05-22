@@ -3,3 +3,10 @@ uvicorn[standard]==0.30.6
 httpx==0.27.2
 pydantic[email]==2.9.2
 email-validator==2.3.0
+python-multipart
+minio==7.2.12
+prometheus-fastapi-instrumentator==7.0.2
+opentelemetry-api==1.33.1
+opentelemetry-sdk==1.33.1
+opentelemetry-exporter-otlp-proto-grpc==1.33.1
+opentelemetry-instrumentation-fastapi==0.54b1

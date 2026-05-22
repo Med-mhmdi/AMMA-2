@@ -15,6 +15,16 @@ class BudgetUpsert(BaseModel):
     month: int = Field(ge=1, le=12)
     amount: int = Field(ge=0)
 
+
+@router.get("/expenses/health")
+async def proxy_expense_health():
+    status_code, data = await forward_request(
+        method="GET",
+        url=f"{settings.EXPENSE_SERVICE_URL}/health",
+        headers={},
+    )
+    return JSONResponse(content=data, status_code=status_code)
+
 @router.post("/expenses")
 async def proxy_create_expense(
     payload: ExpenseCreate,

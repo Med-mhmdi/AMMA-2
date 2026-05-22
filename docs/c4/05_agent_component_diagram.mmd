@@ -1,0 +1,31 @@
+flowchart TB
+    Gateway["API Gateway"]
+    APIRoutes["Agent API Routes"]
+    Graph["AMMA Agent Graph"]
+    Router["Supervisor Router Agent"]
+    Command["Command Agent"]
+    Vision["Vision Agent"]
+    Advisor["Financial Advisor Agent"]
+    Recommender["Recommendation Agent"]
+    Notifier["Notification Agent"]
+    Memory["Memory Nodes"]
+    Validation["Validation Nodes"]
+    ToolExec["Tool Execution Nodes"]
+    Mongo[("MongoDB Agent Memory")]
+    Ollama["Ollama LLM Provider"]
+    Tools["Internal Service Tools\nExpense / Loan / Analytics / Notification"]
+    LangObs["Langfuse / LangSmith"]
+
+    Gateway --> APIRoutes --> Graph --> Router
+    Router --> Command
+    Router --> Vision
+    Router --> Advisor
+    Advisor --> Recommender
+    Advisor --> Notifier
+    Graph --> Memory --> Mongo
+    Graph --> Validation
+    Graph --> ToolExec --> Tools
+    Command --> Ollama
+    Vision --> Ollama
+    Advisor --> Ollama
+    Graph -. traces .-> LangObs

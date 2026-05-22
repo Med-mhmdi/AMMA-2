@@ -1,0 +1,18 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {
+      "type": "text",
+      "title": "AMMA Task Series 3 Overview",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 6},
+      "options": {
+        "mode": "markdown",
+        "content": "# AMMA Observability\n\nUse this dashboard as a defense placeholder. Current stack includes Prometheus, Grafana, Loki, Jaeger, Kafka, Redis, MongoDB, PostgreSQL, MinIO, Nginx, and microservices. Next production step: add /metrics middleware to every FastAPI service."
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "title": "AMMA Overview",
+  "version": 1
+}

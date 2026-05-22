@@ -1,0 +1,21 @@
+flowchart TB
+    Gateway["API Gateway"]
+    Routes["Expense / Category / Budget Routes"]
+    Security["JWT Security Dependency"]
+    ExpenseService["Expense Service"]
+    CategoryService["Category Service"]
+    BudgetService["Budget Service"]
+    ExpenseRepo["Expense Repository"]
+    CategoryRepo["Category Repository"]
+    BudgetRepo["Budget Repository"]
+    DB[("PostgreSQL Expense DB")]
+    Publisher["Expense Event Publisher"]
+    Kafka[("Kafka Topics\nexpense.created/updated/deleted\nbudget.updated")]
+
+    Gateway --> Routes
+    Routes --> Security
+    Routes --> ExpenseService --> ExpenseRepo --> DB
+    Routes --> CategoryService --> CategoryRepo --> DB
+    Routes --> BudgetService --> BudgetRepo --> DB
+    ExpenseService --> Publisher --> Kafka
+    BudgetService --> Publisher

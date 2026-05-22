@@ -1,54 +1,37 @@
-import json
-import threading
-import time
-
-from kafka import KafkaConsumer
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.notification import Notification
+from shared.amma_events.consumers import start_kafka_consumer_thread
+from shared.amma_events.topics import Topics
 
 
-KAFKA_BOOTSTRAP_SERVERS = "kafka:9092"
-LOAN_TOPIC = "loan.created"
-GROUP_ID = "notification-loan-group"
+def _payload(event: dict) -> dict:
+    return event.get("payload") or event
 
 
-def consume_loan_events():
-    while True:
-        try:
-            consumer = KafkaConsumer(
-                LOAN_TOPIC,
-                bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
-                auto_offset_reset="earliest",
-                enable_auto_commit=True,
-                group_id=GROUP_ID,
-            )
-
-            for message in consumer:
-                event = message.value
-
-                db: Session = SessionLocal()
-                try:
-                    notification = Notification(
-                        user_id=event["user_id"],
-                        title="Loan created",
-                        message=f"Loan recorded for {event['person_name']} amount {event['amount']}",
-                        type="loan_reminder",
-                        status="pending",
-                        related_entity_id=event["loan_id"],
-                    )
-                    db.add(notification)
-                    db.commit()
-                finally:
-                    db.close()
-
-        except Exception as exc:
-            print(f"[Loan Consumer] Kafka connection failed: {exc}")
-            time.sleep(5)
+def handle_loan_event(event: dict) -> None:
+    payload = _payload(event)
+    db: Session = SessionLocal()
+    try:
+        notification = Notification(
+            user_id=payload["user_id"],
+            title="Loan created",
+            message=f"Loan recorded for {payload.get('person_name', 'unknown')} amount {payload.get('amount')}",
+            type="loan_reminder",
+            status="pending",
+            related_entity_id=payload.get("loan_id"),
+        )
+        db.add(notification)
+        db.commit()
+    finally:
+        db.close()
 
 
 def start_loan_consumer():
-    thread = threading.Thread(target=consume_loan_events, daemon=True)
-    thread.start()
+    return start_kafka_consumer_thread(
+        topics=[Topics.LOAN_CREATED],
+        group_id="notification-loan-group",
+        handler=handle_loan_event,
+        service_name="notification_service.loan_consumer",
+    )
