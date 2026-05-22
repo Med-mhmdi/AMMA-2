@@ -76,4 +76,8 @@ infra/k8s/secrets/*.local.yaml
 # Misc
 # ------------------------------
 *.bak
-*.swp
+*.swp# Terraform local state
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
