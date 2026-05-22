@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: amma-platform
+  namespace: argocd
+spec:
+  description: AMMA platform project
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: amma
+      server: https://kubernetes.default.svc
+    - namespace: kafka
+      server: https://kubernetes.default.svc
+    - namespace: observability
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+

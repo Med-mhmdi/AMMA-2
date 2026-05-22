@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amma-loan-service
+  labels:
+    app: amma-loan-service
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: amma-loan-service
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

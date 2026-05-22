@@ -1,0 +1,63 @@
+name: AMMA Build with Kaniko and ArgoCD Sync
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-update:
+    runs-on: self-hosted
+
+    strategy:
+      matrix:
+        service:
+          - name: amma-gateway
+            dockerfile: infra/docker/gateway.Dockerfile
+            chart: infra/helm/amma-gateway/values.yaml
+          - name: amma-auth-service
+            dockerfile: infra/docker/auth_service.Dockerfile
+            chart: infra/helm/amma-auth-service/values.yaml
+          - name: amma-expense-service
+            dockerfile: infra/docker/expense_service.Dockerfile
+            chart: infra/helm/amma-expense-service/values.yaml
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image with Kaniko
+        uses: docker://gcr.io/kaniko-project/executor:latest
+        with:
+          args: >
+            --context=${{ github.workspace }}
+            --dockerfile=${{ github.workspace }}/${{ matrix.service.dockerfile }}
+            --destination=localhost:5000/${{ matrix.service.name }}:${{ github.sha }}
+            --insecure
+            --skip-tls-verify
+
+      - name: Update Helm values image tag
+        shell: bash
+        run: |
+          python - <<'PY'
+          import sys, yaml, os
+          path="${{ matrix.service.chart }}"
+          with open(path) as f:
+              data=yaml.safe_load(f)
+          data["image"]["tag"]="${{ github.sha }}"
+          with open(path, "w") as f:
+              yaml.safe_dump(data, f, sort_keys=False)
+          PY
+
+      - name: Commit updated Helm values
+        shell: bash
+        run: |
+          git config user.email "runner@local"
+          git config user.name "local-runner"
+          git add ${{ matrix.service.chart }}
+          git commit -m "ci: update ${{ matrix.service.name }} image tag to ${{ github.sha }}" || true
+          git push || true
+
+      - name: ArgoCD sync
+        shell: bash
+        run: |
+          argocd app sync ${{ matrix.service.name }} || true

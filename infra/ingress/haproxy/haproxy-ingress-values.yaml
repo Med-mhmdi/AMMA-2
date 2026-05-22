@@ -1,0 +1,11 @@
+controller:
+  kind: Deployment
+  replicaCount: 2
+  service:
+    type: LoadBalancer
+  config:
+    timeout-connect: "5s"
+    timeout-client: "50s"
+    timeout-server: "50s"
+defaultBackend:
+  enabled: true

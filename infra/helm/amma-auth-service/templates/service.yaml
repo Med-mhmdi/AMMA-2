@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amma-auth-service
+  labels:
+    app: amma-auth-service
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: amma-auth-service
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

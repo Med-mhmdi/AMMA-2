@@ -1,0 +1,29 @@
+# Keepalived is mainly for bare-metal/VM clusters with host networking.
+# In local k3d/kind, prefer MetalLB or k3d loadbalancer.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: keepalived
+  namespace: ingress-system
+spec:
+  selector:
+    matchLabels:
+      app: keepalived
+  template:
+    metadata:
+      labels:
+        app: keepalived
+    spec:
+      hostNetwork: true
+      containers:
+        - name: keepalived
+          image: osixia/keepalived:2.0.20
+          securityContext:
+            privileged: true
+          env:
+            - name: KEEPALIVED_INTERFACE
+              value: "eth0"
+            - name: KEEPALIVED_VIRTUAL_IPS
+              value: "#PYTHON2BASH:['192.168.56.100']"
+            - name: KEEPALIVED_UNICAST_PEERS
+              value: "#PYTHON2BASH:['192.168.56.101','192.168.56.102']"

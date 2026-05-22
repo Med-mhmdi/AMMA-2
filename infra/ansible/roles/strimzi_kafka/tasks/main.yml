@@ -1,0 +1,23 @@
+- name: Create kafka namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: kafka
+
+- name: Install Strimzi operator
+  kubernetes.core.k8s:
+    state: present
+    src: https://strimzi.io/install/latest?namespace=kafka
+
+- name: Deploy AMMA Kafka cluster
+  kubernetes.core.k8s:
+    state: present
+    template: kafka-cluster.yaml.j2
+
+- name: Deploy AMMA Kafka topics
+  kubernetes.core.k8s:
+    state: present
+    template: kafka-topics.yaml.j2

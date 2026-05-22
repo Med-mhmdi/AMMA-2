@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amma-analytics-service
+  labels:
+    app: amma-analytics-service
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: amma-analytics-service
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

@@ -1,0 +1,19 @@
+{% for topic in [
+"expense.created","expense.updated","expense.deleted",
+"loan.created","loan.updated","loan.deleted",
+"notification.created","notification.sent",
+"analytics.snapshot.created","ai.insight.generated"
+] %}
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: {{ topic | replace(".", "-") }}
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: amma
+spec:
+  topicName: {{ topic }}
+  partitions: 1
+  replicas: 1
+{% endfor %}
