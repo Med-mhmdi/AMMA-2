@@ -1,66 +1,23 @@
-resource "kubernetes_namespace" "amma" {
-  metadata {
-    name = var.namespace
-    labels = {
-      "istio-injection" = "enabled"
-      "project"         = "amma"
-    }
-  }
-}
+resource "terraform_data" "amma_base_infrastructure" {
+  input = "amma-task3-base-infra"
 
-resource "kubernetes_namespace" "kafka" {
-  metadata {
-    name = "kafka"
-  }
-}
+  provisioner "local-exec" {
+    interpreter = ["PowerShell", "-Command"]
 
-resource "kubernetes_service_account" "gateway" {
-  metadata {
-    name      = "amma-gateway-sa"
-    namespace = kubernetes_namespace.amma.metadata[0].name
-  }
-}
+    command = <<EOT
+kubectl create namespace amma --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace kafka --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace observability --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace ingress-system --dry-run=client -o yaml | kubectl apply -f -
 
-resource "kubernetes_service_account" "microservice" {
-  metadata {
-    name      = "amma-microservice-sa"
-    namespace = kubernetes_namespace.amma.metadata[0].name
-  }
-}
+kubectl create serviceaccount amma-gateway-sa -n amma --dry-run=client -o yaml | kubectl apply -f -
+kubectl create serviceaccount amma-service-sa -n amma --dry-run=client -o yaml | kubectl apply -f -
+kubectl create serviceaccount kafka-sa -n kafka --dry-run=client -o yaml | kubectl apply -f -
 
-resource "kubernetes_secret" "app_secrets" {
-  metadata {
-    name      = "amma-app-secrets"
-    namespace = kubernetes_namespace.amma.metadata[0].name
-  }
+kubectl create secret generic amma-app-secrets -n amma --from-literal=JWT_SECRET_KEY=dev-secret --from-literal=POSTGRES_PASSWORD=postgres --from-literal=REDIS_PASSWORD=redis --dry-run=client -o yaml | kubectl apply -f -
+kubectl create secret generic amma-minio-secrets -n amma --from-literal=MINIO_ROOT_USER=minio --from-literal=MINIO_ROOT_PASSWORD=minio123 --dry-run=client -o yaml | kubectl apply -f -
 
-  data = {
-    JWT_SECRET_KEY       = "change-me-local"
-    POSTGRES_PASSWORD    = "postgres"
-    MINIO_ROOT_USER      = "minio"
-    MINIO_ROOT_PASSWORD  = "minio123"
-  }
-
-  type = "Opaque"
-}
-
-resource "kubernetes_config_map" "app_config" {
-  metadata {
-    name      = "amma-app-config"
-    namespace = kubernetes_namespace.amma.metadata[0].name
-  }
-
-  data = {
-    APP_ENV                  = "development"
-    KAFKA_BOOTSTRAP_SERVERS  = "amma-kafka-bootstrap.kafka:9092"
-    REDIS_HOST               = "redis"
-    MONGODB_URL              = "mongodb://mongodb:27017"
-    MINIO_ENDPOINT           = "minio:9000"
-    AUTH_SERVICE_URL         = "http://amma-auth-service:8000"
-    EXPENSE_SERVICE_URL      = "http://amma-expense-service:8000"
-    LOAN_SERVICE_URL         = "http://amma-loan-service:8000"
-    ANALYTICS_SERVICE_URL    = "http://amma-analytics-service:8000"
-    NOTIFICATION_SERVICE_URL = "http://amma-notification-service:8000"
-    AGENT_SERVICE_URL        = "http://amma-agent-service:8000"
+kubectl create configmap amma-platform-config -n amma --from-literal=APP_ENV=development --from-literal=KAFKA_BOOTSTRAP_SERVERS=amma-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092 --from-literal=REDIS_URL=redis://redis.amma.svc.cluster.local:6379 --from-literal=MONGO_URL=mongodb://mongodb.amma.svc.cluster.local:27017 --dry-run=client -o yaml | kubectl apply -f -
+EOT
   }
 }

@@ -1,7 +1,29 @@
-output "amma_namespace" {
-  value = kubernetes_namespace.amma.metadata[0].name
+output "created_namespaces" {
+  value = [
+    "amma",
+    "kafka",
+    "observability",
+    "ingress-system"
+  ]
 }
 
-output "kafka_namespace" {
-  value = kubernetes_namespace.kafka.metadata[0].name
+output "created_service_accounts" {
+  value = [
+    "amma/amma-gateway-sa",
+    "amma/amma-service-sa",
+    "kafka/kafka-sa"
+  ]
+}
+
+output "created_secrets" {
+  value = [
+    "amma/amma-app-secrets",
+    "amma/amma-minio-secrets"
+  ]
+}
+
+output "created_configmaps" {
+  value = [
+    "amma/amma-platform-config"
+  ]
 }

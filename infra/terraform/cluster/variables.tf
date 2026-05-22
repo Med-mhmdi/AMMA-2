@@ -1,14 +1,1 @@
-variable "kubeconfig_path" {
-  type    = string
-  default = "~/.kube/config"
-}
-
-variable "namespace" {
-  type    = string
-  default = "amma"
-}
-
-variable "docker_registry" {
-  type    = string
-  default = "localhost:5000"
-}
+# Variables are intentionally minimal for the local Task 3 platform demo.
