@@ -6,7 +6,7 @@ metadata:
 spec:
   project: amma-platform
   source:
-    repoURL: https://github.com/amimoh29400/AMMA-2.git
+    repoURL: https://github.com/Med-mhmdi/AMMA-2.git
     targetRevision: main
     path: infra/helm/amma-analytics-service
   destination:
@@ -18,4 +18,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+
 
