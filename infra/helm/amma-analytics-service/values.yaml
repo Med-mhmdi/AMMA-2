@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: localhost:5000/amma-analytics-service
-  tag: local
+  tag: health-v1
   pullPolicy: IfNotPresent
 service:
   type: ClusterIP
