@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amma-postgres-init
+  namespace: amma
+data:
+  init.sql: |
+    CREATE DATABASE auth_db;
+    CREATE DATABASE expense_db;
+    CREATE DATABASE loan_db;
+    CREATE DATABASE notification_db;
+    CREATE DATABASE analytics_db;
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: amma-postgres-pvc
+  namespace: amma
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amma-postgres
+  namespace: amma
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amma-postgres
+  template:
+    metadata:
+      labels:
+        app: amma-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: amma_db
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: amma-postgres-pvc
+        - name: postgres-init
+          configMap:
+            name: amma-postgres-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amma-postgres
+  namespace: amma
+spec:
+  selector:
+    app: amma-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

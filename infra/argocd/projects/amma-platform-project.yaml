@@ -4,18 +4,29 @@ metadata:
   name: amma-platform
   namespace: argocd
 spec:
-  description: AMMA platform project
+  description: AMMA Task 3 platform GitOps project
+
   sourceRepos:
-    - '*'
+    - https://github.com/Med-mhmdi/AMMA-2.git
+
   destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
     - namespace: amma
       server: https://kubernetes.default.svc
     - namespace: kafka
       server: https://kubernetes.default.svc
+    - namespace: istio-system
+      server: https://kubernetes.default.svc
     - namespace: observability
       server: https://kubernetes.default.svc
+    - namespace: ingress-system
+      server: https://kubernetes.default.svc
+
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
 
-
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

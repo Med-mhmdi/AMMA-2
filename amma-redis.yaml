@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: amma-redis
   namespace: amma
-  labels:
-    app: amma-redis
 spec:
   replicas: 1
   selector:
@@ -17,11 +15,24 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:7-alpine
+          image: redis:7
           ports:
             - containerPort: 6379
-          readinessProbe:
-            tcpSocket:
-              port: 6379
-            initialDelaySeconds: 5
-            periodSeconds: 10
+          args:
+            - redis-server
+            - --appendonly
+            - "yes"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amma-redis
+  namespace: amma
+spec:
+  selector:
+    app: amma-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP

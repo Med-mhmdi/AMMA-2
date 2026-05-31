@@ -8,6 +8,10 @@ from shared.amma_observability import setup_observability
 
 
 app = FastAPI(title=settings.APP_NAME)
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "analytics"}
 app.include_router(router)
 setup_observability(app, service_name="amma-analytics-service")
 

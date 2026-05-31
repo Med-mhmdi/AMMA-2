@@ -39,7 +39,7 @@ async def proxy_agent_analyze(
 
     status_code, data = await forward_request(
         method="POST",
-        url=f"{settings.MULTI_AGENT_SYSTEM_URL}/agent/analyze",
+        url=f"{settings.AGENT_SERVICE_URL}/agent/analyze",
         headers=headers,
         json_body=payload.model_dump(mode="json"),
         timeout=300.0,
@@ -103,7 +103,7 @@ async def proxy_agent_analyze_upload(
 
     async with httpx.AsyncClient(timeout=300.0) as client:
         response = await client.post(
-            f"{settings.MULTI_AGENT_SYSTEM_URL}/agent/analyze/upload",
+            f"{settings.AGENT_SERVICE_URL}/agent/analyze/upload",
             headers=headers,
             data=form_data,
             files=files,
@@ -130,7 +130,7 @@ async def proxy_agent_graph_mermaid():
 
     status_code, data = await forward_request(
         method="GET",
-        url=f"{settings.MULTI_AGENT_SYSTEM_URL}/agent/graph/mermaid",
+        url=f"{settings.AGENT_SERVICE_URL}/agent/graph/mermaid",
         headers={},
         timeout=30.0,
     )
@@ -147,7 +147,7 @@ async def proxy_agent_graph_mermaid_raw():
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(
-            f"{settings.MULTI_AGENT_SYSTEM_URL}/agent/graph/mermaid/raw"
+            f"{settings.AGENT_SERVICE_URL}/agent/graph/mermaid/raw"
         )
 
     return PlainTextResponse(
@@ -164,7 +164,7 @@ async def proxy_agent_llm_config():
 
     status_code, data = await forward_request(
         method="GET",
-        url=f"{settings.MULTI_AGENT_SYSTEM_URL}/agent/llm/config",
+        url=f"{settings.AGENT_SERVICE_URL}/agent/llm/config",
         headers={},
         timeout=30.0,
     )
@@ -180,7 +180,7 @@ async def proxy_agent_langfuse_observability():
 
     status_code, data = await forward_request(
         method="GET",
-        url=f"{settings.MULTI_AGENT_SYSTEM_URL}/agent/observability/langfuse",
+        url=f"{settings.AGENT_SERVICE_URL}/agent/observability/langfuse",
         headers={},
         timeout=30.0,
     )
@@ -196,7 +196,7 @@ async def proxy_agent_health():
 
     status_code, data = await forward_request(
         method="GET",
-        url=f"{settings.MULTI_AGENT_SYSTEM_URL}/agent/health",
+        url=f"{settings.AGENT_SERVICE_URL}/agent/health",
         headers={},
         timeout=30.0,
     )

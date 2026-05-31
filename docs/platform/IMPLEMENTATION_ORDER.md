@@ -60,6 +60,19 @@ kubectl get pods -n kafka
 kubectl get kafka -n kafka
 ```
 
+## Phase 4B - Runtime dependencies
+Run this before deploying Helm services, because the Python services create SQL tables on startup:
+```powershell
+scripts/task3/04b_deploy_runtime_dependencies.ps1
+```
+
+Verify:
+```powershell
+kubectl get deploy,svc -n amma
+kubectl get configmap amma-app-config -n amma
+kubectl get secret amma-app-secrets -n amma
+```
+
 ## Phase 5 - ArgoCD App of Apps
 Run:
 ```powershell
@@ -90,14 +103,13 @@ kubectl get deploy,svc,pod -n amma
 Run:
 ```powershell
 scripts/task3/05_install_istio.ps1
-kubectl apply -f infra/istio/
-kubectl apply -f infra/istio/ratelimit/
 ```
 
 Verify:
 ```powershell
 kubectl get pods -n istio-system
-kubectl get destinationrule,virtualservice,envoyfilter -n amma
+kubectl get gateway,virtualservice,destinationrule,envoyfilter -n amma
+kubectl get envoyfilter -n istio-system
 ```
 
 ## Phase 8 - Ingress

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amma-mongodb
+  namespace: amma
+  labels:
+    app: amma-mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amma-mongodb
+  template:
+    metadata:
+      labels:
+        app: amma-mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          readinessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 10
+            periodSeconds: 10

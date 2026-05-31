@@ -81,3 +81,11 @@ infra/k8s/secrets/*.local.yaml
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+
+istio-*/
+*-patch.json
+sync-patch.json
+analytics-probe-patch.json
+analytics-probe-fix.json
+amma-agent-url-patch.json
+amma-config-db-patch.json

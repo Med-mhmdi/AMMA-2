@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amma-app-config
+  namespace: amma
+data:
+  APP_ENV: "development"
+  APP_DEBUG: "true"
+  AUTH_SERVICE_URL: "http://amma-auth-service.amma.svc.cluster.local:8000"
+  EXPENSE_SERVICE_URL: "http://amma-expense-service.amma.svc.cluster.local:8000"
+  LOAN_SERVICE_URL: "http://amma-loan-service.amma.svc.cluster.local:8000"
+  ANALYTICS_SERVICE_URL: "http://amma-analytics-service.amma.svc.cluster.local:8000"
+  NOTIFICATION_SERVICE_URL: "http://amma-notification-service.amma.svc.cluster.local:8000"
+  AGENT_SERVICE_URL: "http://amma-agent-service.amma.svc.cluster.local:8000"
+  AUTH_DATABASE_URL: "postgresql+psycopg2://postgres:postgres@amma-postgres.amma.svc.cluster.local:5432/amma_db"
+  EXPENSE_DATABASE_URL: "postgresql+psycopg2://postgres:postgres@amma-postgres.amma.svc.cluster.local:5432/amma_db"
+  LOAN_DATABASE_URL: "postgresql+psycopg2://postgres:postgres@amma-postgres.amma.svc.cluster.local:5432/amma_db"
+  NOTIFICATION_DATABASE_URL: "postgresql+psycopg2://postgres:postgres@amma-postgres.amma.svc.cluster.local:5432/amma_db"
+  REDIS_URL: "redis://amma-redis.amma.svc.cluster.local:6379"
+  MONGODB_URL: "mongodb://amma-mongodb.amma.svc.cluster.local:27017"
+  MONGODB_DB_NAME: "agent_memory_db"
+  KAFKA_BOOTSTRAP_SERVERS: "amma-kafka-bootstrap.kafka.svc.cluster.local:9092"
