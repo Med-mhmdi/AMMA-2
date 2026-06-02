@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: amma
+  labels:
+    app.kubernetes.io/name: amma
+    app.kubernetes.io/part-of: amma
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: amma-microservice-sa
+  namespace: amma
+  labels:
+    app.kubernetes.io/name: amma-microservice-sa
+    app.kubernetes.io/part-of: amma
