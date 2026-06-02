@@ -5,59 +5,164 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-update:
     runs-on: self-hosted
 
-    strategy:
-      matrix:
-        service:
-          - name: amma-gateway
-            dockerfile: infra/docker/gateway.Dockerfile
-            chart: infra/helm/amma-gateway/values.yaml
-          - name: amma-auth-service
-            dockerfile: infra/docker/auth_service.Dockerfile
-            chart: infra/helm/amma-auth-service/values.yaml
-          - name: amma-expense-service
-            dockerfile: infra/docker/expense_service.Dockerfile
-            chart: infra/helm/amma-expense-service/values.yaml
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build image with Kaniko
-        uses: docker://gcr.io/kaniko-project/executor:latest
-        with:
-          args: >
-            --context=${{ github.workspace }}
-            --dockerfile=${{ github.workspace }}/${{ matrix.service.dockerfile }}
-            --destination=localhost:5000/${{ matrix.service.name }}:${{ github.sha }}
-            --insecure
-            --skip-tls-verify
-
-      - name: Update Helm values image tag
-        shell: bash
+      - name: Install YAML tooling
+        shell: pwsh
         run: |
-          python - <<'PY'
-          import sys, yaml, os
-          path="${{ matrix.service.chart }}"
-          with open(path) as f:
-              data=yaml.safe_load(f)
-          data["image"]["tag"]="${{ github.sha }}"
-          with open(path, "w") as f:
-              yaml.safe_dump(data, f, sort_keys=False)
-          PY
+          # PyYAML is used to update Helm values without fragile text replacement.
+          python -m pip install --user PyYAML
+
+      - name: Build all AMMA service images with Kaniko
+        shell: pwsh
+        run: |
+          # Build sequentially to avoid matrix-side effects and keep one later Git commit.
+          $services = @(
+            @{
+              Name = "amma-gateway"
+              Dockerfile = "infra/docker/gateway.Dockerfile"
+              PushRepository = "k3d-amma-registry.localhost:5000/amma-gateway"
+            },
+            @{
+              Name = "amma-auth-service"
+              Dockerfile = "infra/docker/auth_service.Dockerfile"
+              PushRepository = "k3d-amma-registry.localhost:5000/amma-auth-service"
+            },
+            @{
+              Name = "amma-expense-service"
+              Dockerfile = "infra/docker/expense_service.Dockerfile"
+              PushRepository = "k3d-amma-registry.localhost:5000/amma-expense-service"
+            },
+            @{
+              Name = "amma-loan-service"
+              Dockerfile = "infra/docker/loan_service.Dockerfile"
+              PushRepository = "k3d-amma-registry.localhost:5000/amma-loan-service"
+            },
+            @{
+              Name = "amma-analytics-service"
+              Dockerfile = "infra/docker/analytics_service.Dockerfile"
+              PushRepository = "k3d-amma-registry.localhost:5000/amma-analytics-service"
+            },
+            @{
+              Name = "amma-notification-service"
+              Dockerfile = "infra/docker/notification_service.Dockerfile"
+              PushRepository = "k3d-amma-registry.localhost:5000/amma-notification-service"
+            },
+            @{
+              Name = "amma-agent-service"
+              Dockerfile = "infra/docker/multi_agent_system.Dockerfile"
+              PushRepository = "k3d-amma-registry.localhost:5000/amma-multi-agent-system"
+            }
+          )
+
+          foreach ($service in $services) {
+            $destination = "$($service.PushRepository):$env:GITHUB_SHA"
+            Write-Host "Building $($service.Name) -> $destination"
+
+            docker run --rm `
+              --network k3d-amma-platform `
+              -v "${{ github.workspace }}:/workspace" `
+              gcr.io/kaniko-project/executor:latest `
+              --context=/workspace `
+              --dockerfile="/workspace/$($service.Dockerfile)" `
+              --destination="$destination" `
+              --insecure `
+              --skip-tls-verify
+          }
+
+      - name: Update Helm values image tags
+        shell: pwsh
+        run: |
+          # Update all chart tags after every image has been built successfully.
+          $script = @'
+          import os
+          import yaml
+
+          services = [
+              {"chart": "infra/helm/amma-gateway/values.yaml"},
+              {"chart": "infra/helm/amma-auth-service/values.yaml"},
+              {"chart": "infra/helm/amma-expense-service/values.yaml"},
+              {"chart": "infra/helm/amma-loan-service/values.yaml"},
+              {"chart": "infra/helm/amma-analytics-service/values.yaml"},
+              {"chart": "infra/helm/amma-notification-service/values.yaml"},
+              {"chart": "infra/helm/amma-agent-service/values.yaml"},
+          ]
+
+          image_tag = os.environ["GITHUB_SHA"]
+
+          for service in services:
+              path = service["chart"]
+              with open(path, "r", encoding="utf-8") as values_file:
+                  data = yaml.safe_load(values_file)
+
+              data.setdefault("image", {})
+              data["image"]["tag"] = image_tag
+
+              with open(path, "w", encoding="utf-8") as values_file:
+                  yaml.safe_dump(data, values_file, sort_keys=False)
+          '@
+
+          $script | python -
 
       - name: Commit updated Helm values
-        shell: bash
+        shell: pwsh
         run: |
+          # Commit all Helm value changes once to avoid matrix push conflicts.
           git config user.email "runner@local"
           git config user.name "local-runner"
-          git add ${{ matrix.service.chart }}
-          git commit -m "ci: update ${{ matrix.service.name }} image tag to ${{ github.sha }}" || true
-          git push || true
 
-      - name: ArgoCD sync
-        shell: bash
+          git add `
+            infra/helm/amma-gateway/values.yaml `
+            infra/helm/amma-auth-service/values.yaml `
+            infra/helm/amma-expense-service/values.yaml `
+            infra/helm/amma-loan-service/values.yaml `
+            infra/helm/amma-analytics-service/values.yaml `
+            infra/helm/amma-notification-service/values.yaml `
+            infra/helm/amma-agent-service/values.yaml
+
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "No Helm value changes to commit."
+            exit 0
+          }
+
+          git commit -m "ci: update AMMA service image tags to $env:GITHUB_SHA [skip ci]"
+          git pull --rebase
+          git push
+
+      - name: Optional Argo CD sync
+        shell: pwsh
         run: |
-          argocd app sync ${{ matrix.service.name }} || true
+          # Argo CD sync is best-effort because local runners may not have the CLI or session.
+          if (-not (Get-Command argocd -ErrorAction SilentlyContinue)) {
+            Write-Warning "argocd CLI is not available. Skipping Argo CD sync."
+            exit 0
+          }
+
+          $apps = @(
+            "amma-gateway",
+            "amma-auth-service",
+            "amma-expense-service",
+            "amma-loan-service",
+            "amma-analytics-service",
+            "amma-notification-service",
+            "amma-agent-service"
+          )
+
+          foreach ($app in $apps) {
+            Write-Host "Syncing Argo CD application $app"
+            argocd app sync $app
+            if ($LASTEXITCODE -ne 0) {
+              Write-Warning "Argo CD sync failed or is not logged in for $app. Continuing."
+            }
+          }
+
+          exit 0
